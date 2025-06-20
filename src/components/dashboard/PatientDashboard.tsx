@@ -5,7 +5,7 @@ import { MedicationForm } from '@/components/medication/MedicationForm';
 import { MedicationList } from '@/components/medication/MedicationList';
 import { AdherenceStats } from './AdherenceStats';
 import { NotificationSettings } from './NotificationSettings';
-import { Calendar, Pills, Settings } from 'lucide-react';
+import { Calendar, Pill, Settings } from 'lucide-react';
 
 export const PatientDashboard = () => {
   const today = new Date();
@@ -31,7 +31,7 @@ export const PatientDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <div className="flex items-center space-x-2 mb-6">
-            <Pills className="h-6 w-6 text-blue-600" />
+            <Pill className="h-6 w-6 text-blue-600" />
             <h2 className="text-2xl font-semibold text-gray-900">Your Medications</h2>
           </div>
           
