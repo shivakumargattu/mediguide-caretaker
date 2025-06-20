@@ -24,6 +24,8 @@ A role-based Medication Management System for **Patients** and **Caretakers** bu
   - Upload photo proof UI (not functional)
   - ![image](https://github.com/user-attachments/assets/c8cb19b7-682d-4630-9b9b-c2855a47358f)
 
+  - <img width="521" alt="image" src="https://github.com/user-attachments/assets/5fd994aa-9c4f-44c3-a3f8-c71bcdb33811" />
+
 - **Caretaker Dashboard**:
   - List of patients
   - Medication adherence overview
