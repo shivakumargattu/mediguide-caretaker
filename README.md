@@ -9,6 +9,7 @@ A role-based Medication Management System for **Patients** and **Caretakers** bu
 - Role-based Login & Signup (Patient/Caretaker)
 - Form validation with inline error messages
 - ![image](https://github.com/user-attachments/assets/2793cb48-ee45-4896-b583-3ccf5b3b787b)
+- ![image](https://github.com/user-attachments/assets/8a060c76-695d-4b46-8767-64f0f3d2f6cf)
 
 ### 💊 Medication Management
 - Add medication: name, dosage, frequency
