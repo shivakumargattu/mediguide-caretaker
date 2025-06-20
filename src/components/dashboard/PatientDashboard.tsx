@@ -1,13 +1,18 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MedicationForm } from '@/components/medication/MedicationForm';
 import { MedicationList } from '@/components/medication/MedicationList';
 import { AdherenceStats } from './AdherenceStats';
 import { NotificationSettings } from './NotificationSettings';
+import { useMedication } from '@/contexts/MedicationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Calendar, Pill, Settings } from 'lucide-react';
 
 export const PatientDashboard = () => {
+  const { refreshMedications } = useMedication();
+  const { user } = useAuth();
+  
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -15,6 +20,13 @@ export const PatientDashboard = () => {
     month: 'long',
     day: 'numeric'
   });
+
+  // Load medications when component mounts
+  useEffect(() => {
+    if (user) {
+      refreshMedications(user.id);
+    }
+  }, [user, refreshMedications]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { database } from '@/lib/database';
 
 export type UserRole = 'patient' | 'caretaker';
 
@@ -38,24 +39,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'patient@example.com',
-    firstName: 'John',
-    lastName: 'Doe',
-    role: 'patient'
-  },
-  {
-    id: '2',
-    email: 'caretaker@example.com',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    role: 'caretaker'
-  }
-];
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,17 +48,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
 
-    // Simulate API call
+    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const foundUser = mockUsers.find(u => u.email === email && u.role === role);
-    
-    if (foundUser && password === 'password123') {
-      setUser(foundUser);
-      setIsLoading(false);
-      return true;
-    } else {
-      setError('Invalid credentials or role');
+    try {
+      const foundUser = database.getUserByEmailAndRole(email, role);
+      
+      if (foundUser && foundUser.password === password) {
+        const { password: _, ...userWithoutPassword } = foundUser;
+        setUser(userWithoutPassword as User);
+        setIsLoading(false);
+        return true;
+      } else {
+        setError('Invalid credentials or role');
+        setIsLoading(false);
+        return false;
+      }
+    } catch (err) {
+      setError('Database error');
       setIsLoading(false);
       return false;
     }
@@ -85,29 +75,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
 
-    // Simulate API call
+    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check if user already exists
-    const existingUser = mockUsers.find(u => u.email === userData.email);
-    if (existingUser) {
-      setError('User already exists');
+    try {
+      // Check if user already exists
+      const existingUser = database.getUserByEmailAndRole(userData.email, userData.role);
+      if (existingUser) {
+        setError('User already exists');
+        setIsLoading(false);
+        return false;
+      }
+
+      const newUser = database.createUser(userData);
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword as User);
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      setError('Database error');
       setIsLoading(false);
       return false;
     }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role
-    };
-
-    mockUsers.push(newUser);
-    setUser(newUser);
-    setIsLoading(false);
-    return true;
   };
 
   const logout = () => {

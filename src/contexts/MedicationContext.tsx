@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { database, MedicationRecord } from '@/lib/database';
 
 export interface Medication {
   id: string;
@@ -25,6 +26,7 @@ interface MedicationContextType {
   markAsTaken: (medicationId: string) => void;
   getAdherenceStats: (patientId: string) => { taken: number; total: number; percentage: number };
   isLoading: boolean;
+  refreshMedications: (patientId: string) => void;
 }
 
 const MedicationContext = createContext<MedicationContextType | undefined>(undefined);
@@ -37,61 +39,73 @@ export const useMedication = () => {
   return context;
 };
 
-// Mock medications
-const mockMedications: Medication[] = [
-  {
-    id: '1',
-    name: 'Aspirin',
-    dosage: '100mg',
-    frequency: 'Once daily',
-    patientId: '1',
-    createdAt: new Date('2024-01-01'),
-    taken: true,
-    lastTaken: new Date()
-  },
-  {
-    id: '2',
-    name: 'Vitamin D',
-    dosage: '1000IU',
-    frequency: 'Once daily',
-    patientId: '1',
-    createdAt: new Date('2024-01-01'),
-    taken: false
-  },
-  {
-    id: '3',
-    name: 'Metformin',
-    dosage: '500mg',
-    frequency: 'Twice daily',
-    patientId: '1',
-    createdAt: new Date('2024-01-01'),
-    taken: true,
-    lastTaken: new Date()
-  }
-];
+// Helper function to convert database record to Medication interface
+const convertToMedication = (record: MedicationRecord): Medication => ({
+  id: record.id,
+  name: record.name,
+  dosage: record.dosage,
+  frequency: record.frequency,
+  patientId: record.patientId,
+  createdAt: new Date(record.createdAt),
+  taken: record.taken === 1,
+  lastTaken: record.lastTaken ? new Date(record.lastTaken) : undefined,
+  photoProof: record.photoProof
+});
 
 export const MedicationProvider = ({ children }: { children: ReactNode }) => {
-  const [medications, setMedications] = useState<Medication[]>(mockMedications);
+  const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addMedication = (medicationData: MedicationFormData, patientId: string) => {
-    const newMedication: Medication = {
-      id: Date.now().toString(),
-      ...medicationData,
-      patientId,
-      createdAt: new Date(),
-      taken: false
-    };
+  const refreshMedications = (patientId: string) => {
+    try {
+      const records = database.getMedicationsByPatientId(patientId);
+      const convertedMedications = records.map(convertToMedication);
+      setMedications(convertedMedications);
+    } catch (error) {
+      console.error('Error refreshing medications:', error);
+    }
+  };
 
-    setMedications(prev => [...prev, newMedication]);
+  const addMedication = (medicationData: MedicationFormData, patientId: string) => {
+    try {
+      const newMedicationRecord = database.addMedication({
+        ...medicationData,
+        patientId,
+        createdAt: new Date().toISOString(),
+        taken: 0,
+        lastTaken: undefined,
+        photoProof: undefined
+      });
+
+      const newMedication = convertToMedication(newMedicationRecord);
+      setMedications(prev => [...prev, newMedication]);
+    } catch (error) {
+      console.error('Error adding medication:', error);
+    }
   };
 
   const markAsTaken = (medicationId: string) => {
-    setMedications(prev => prev.map(med => 
-      med.id === medicationId 
-        ? { ...med, taken: !med.taken, lastTaken: !med.taken ? new Date() : med.lastTaken }
-        : med
-    ));
+    try {
+      const medication = medications.find(med => med.id === medicationId);
+      if (!medication) return;
+
+      const newTakenState = !medication.taken;
+      const lastTaken = newTakenState ? new Date().toISOString() : undefined;
+
+      database.updateMedicationTaken(medicationId, newTakenState, lastTaken);
+
+      setMedications(prev => prev.map(med => 
+        med.id === medicationId 
+          ? { 
+              ...med, 
+              taken: newTakenState, 
+              lastTaken: newTakenState ? new Date() : med.lastTaken 
+            }
+          : med
+      ));
+    } catch (error) {
+      console.error('Error updating medication:', error);
+    }
   };
 
   const getAdherenceStats = (patientId: string) => {
@@ -109,7 +123,8 @@ export const MedicationProvider = ({ children }: { children: ReactNode }) => {
       addMedication,
       markAsTaken,
       getAdherenceStats,
-      isLoading
+      isLoading,
+      refreshMedications
     }}>
       {children}
     </MedicationContext.Provider>
