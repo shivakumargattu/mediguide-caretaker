@@ -1,4 +1,4 @@
-# 💊 Meds Buddy – Medication Management System (Frontend)
+# 💊 Medication Management System (Frontend)
 
 A role-based Medication Management System for **Patients** and **Caretakers** built with **React** and **Tailwind CSS**. This application helps users track medications, log intake, and visualize adherence data.
 ---
