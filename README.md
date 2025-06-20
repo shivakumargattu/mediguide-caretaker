@@ -22,6 +22,8 @@ A role-based Medication Management System for **Patients** and **Caretakers** bu
   - Calendar view of medication streak
   - Adherence chart (mock data)
   - Upload photo proof UI (not functional)
+  - ![image](https://github.com/user-attachments/assets/c8cb19b7-682d-4630-9b9b-c2855a47358f)
+
 - **Caretaker Dashboard**:
   - List of patients
   - Medication adherence overview
