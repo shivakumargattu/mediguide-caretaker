@@ -1,73 +1,36 @@
-# Welcome to your Lovable project
+# 💊 Meds Buddy – Medication Management System (Frontend)
 
-## Project info
+A role-based Medication Management System for **Patients** and **Caretakers** built with **React** and **Tailwind CSS**. This application helps users track medications, log intake, and visualize adherence data.
+---
 
-**URL**: https://lovable.dev/projects/22f6109f-88bb-48e0-bad4-880aa82d5b4d
+## ✨ Features
 
-## How can I edit this code?
+### 👥 Authentication (UI Only)
+- Role-based Login & Signup (Patient/Caretaker)
+- Form validation with inline error messages
 
-There are several ways of editing your application.
+### 💊 Medication Management
+- Add medication: name, dosage, frequency
+- View medication list
+- Mark medications as taken (toggle)
+- Visual feedback on adherence percentage
 
-**Use Lovable**
+### 📆 Dashboards
+- **Patient Dashboard**:
+  - Calendar view of medication streak
+  - Adherence chart (mock data)
+  - Upload photo proof UI (not functional)
+- **Caretaker Dashboard**:
+  - List of patients
+  - Medication adherence overview
+  - Medication logs per patient
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/22f6109f-88bb-48e0-bad4-880aa82d5b4d) and start prompting.
+### 🛠 Settings & UI Components
+- Notification preference toggles (non-functional)
+- Mobile responsive design with Tailwind CSS
+- Reusable UI components (Button, Input, Card, etc.)
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## 📂 Project Structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/22f6109f-88bb-48e0-bad4-880aa82d5b4d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
