@@ -1,6 +1,4 @@
 
-import Database from 'better-sqlite3';
-
 export interface MedicationRecord {
   id: string;
   name: string;
@@ -8,7 +6,7 @@ export interface MedicationRecord {
   frequency: string;
   patientId: string;
   createdAt: string;
-  taken: number; // SQLite uses 0/1 for boolean
+  taken: number; // Using 0/1 for boolean compatibility
   lastTaken?: string;
   photoProof?: string;
 }
@@ -23,116 +21,141 @@ export interface UserRecord {
 }
 
 class DatabaseManager {
-  private db: Database.Database;
+  private readonly USERS_KEY = 'medication_app_users';
+  private readonly MEDICATIONS_KEY = 'medication_app_medications';
 
   constructor() {
-    this.db = new Database(':memory:'); // In-memory database for demo
-    this.initializeTables();
-    this.seedData();
+    this.initializeData();
   }
 
-  private initializeTables() {
-    // Users table
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        firstName TEXT NOT NULL,
-        lastName TEXT NOT NULL,
-        role TEXT NOT NULL,
-        password TEXT NOT NULL
-      )
-    `);
+  private initializeData() {
+    // Initialize users if not exists
+    if (!localStorage.getItem(this.USERS_KEY)) {
+      const defaultUsers: UserRecord[] = [
+        {
+          id: '1',
+          email: 'patient@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          role: 'patient',
+          password: 'password123'
+        },
+        {
+          id: '2',
+          email: 'caretaker@example.com',
+          firstName: 'Jane',
+          lastName: 'Smith',
+          role: 'caretaker',
+          password: 'password123'
+        }
+      ];
+      localStorage.setItem(this.USERS_KEY, JSON.stringify(defaultUsers));
+    }
 
-    // Medications table
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS medications (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        dosage TEXT NOT NULL,
-        frequency TEXT NOT NULL,
-        patientId TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
-        taken INTEGER DEFAULT 0,
-        lastTaken TEXT,
-        photoProof TEXT,
-        FOREIGN KEY (patientId) REFERENCES users (id)
-      )
-    `);
+    // Initialize medications if not exists
+    if (!localStorage.getItem(this.MEDICATIONS_KEY)) {
+      const now = new Date().toISOString();
+      const defaultMedications: MedicationRecord[] = [
+        {
+          id: '1',
+          name: 'Aspirin',
+          dosage: '100mg',
+          frequency: 'Once daily',
+          patientId: '1',
+          createdAt: now,
+          taken: 1,
+          lastTaken: now
+        },
+        {
+          id: '2',
+          name: 'Vitamin D',
+          dosage: '1000IU',
+          frequency: 'Once daily',
+          patientId: '1',
+          createdAt: now,
+          taken: 0
+        },
+        {
+          id: '3',
+          name: 'Metformin',
+          dosage: '500mg',
+          frequency: 'Twice daily',
+          patientId: '1',
+          createdAt: now,
+          taken: 1,
+          lastTaken: now
+        },
+        {
+          id: '4',
+          name: 'Omega-3',
+          dosage: '1000mg',
+          frequency: 'Once daily',
+          patientId: '1',
+          createdAt: now,
+          taken: 0
+        }
+      ];
+      localStorage.setItem(this.MEDICATIONS_KEY, JSON.stringify(defaultMedications));
+    }
   }
 
-  private seedData() {
-    // Insert default users
-    const insertUser = this.db.prepare(`
-      INSERT OR REPLACE INTO users (id, email, firstName, lastName, role, password)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
+  private getUsers(): UserRecord[] {
+    const users = localStorage.getItem(this.USERS_KEY);
+    return users ? JSON.parse(users) : [];
+  }
 
-    insertUser.run('1', 'patient@example.com', 'John', 'Doe', 'patient', 'password123');
-    insertUser.run('2', 'caretaker@example.com', 'Jane', 'Smith', 'caretaker', 'password123');
+  private getMedications(): MedicationRecord[] {
+    const medications = localStorage.getItem(this.MEDICATIONS_KEY);
+    return medications ? JSON.parse(medications) : [];
+  }
 
-    // Insert default medications
-    const insertMedication = this.db.prepare(`
-      INSERT OR REPLACE INTO medications (id, name, dosage, frequency, patientId, createdAt, taken, lastTaken)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+  private saveUsers(users: UserRecord[]): void {
+    localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
+  }
 
-    const now = new Date().toISOString();
-    insertMedication.run('1', 'Aspirin', '100mg', 'Once daily', '1', now, 1, now);
-    insertMedication.run('2', 'Vitamin D', '1000IU', 'Once daily', '1', now, 0, null);
-    insertMedication.run('3', 'Metformin', '500mg', 'Twice daily', '1', now, 1, now);
-    insertMedication.run('4', 'Omega-3', '1000mg', 'Once daily', '1', now, 0, null);
+  private saveMedications(medications: MedicationRecord[]): void {
+    localStorage.setItem(this.MEDICATIONS_KEY, JSON.stringify(medications));
   }
 
   // User methods
   getUserByEmailAndRole(email: string, role: string): UserRecord | undefined {
-    const stmt = this.db.prepare('SELECT * FROM users WHERE email = ? AND role = ?');
-    return stmt.get(email, role) as UserRecord | undefined;
+    const users = this.getUsers();
+    return users.find(user => user.email === email && user.role === role);
   }
 
   createUser(user: Omit<UserRecord, 'id'>): UserRecord {
+    const users = this.getUsers();
     const id = Date.now().toString();
-    const stmt = this.db.prepare(`
-      INSERT INTO users (id, email, firstName, lastName, role, password)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `);
-    stmt.run(id, user.email, user.firstName, user.lastName, user.role, user.password);
-    return { id, ...user };
+    const newUser = { id, ...user };
+    users.push(newUser);
+    this.saveUsers(users);
+    return newUser;
   }
 
   // Medication methods
   getMedicationsByPatientId(patientId: string): MedicationRecord[] {
-    const stmt = this.db.prepare('SELECT * FROM medications WHERE patientId = ?');
-    return stmt.all(patientId) as MedicationRecord[];
+    const medications = this.getMedications();
+    return medications.filter(med => med.patientId === patientId);
   }
 
   addMedication(medication: Omit<MedicationRecord, 'id'>): MedicationRecord {
+    const medications = this.getMedications();
     const id = Date.now().toString();
-    const stmt = this.db.prepare(`
-      INSERT INTO medications (id, name, dosage, frequency, patientId, createdAt, taken, lastTaken, photoProof)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    stmt.run(
-      id, 
-      medication.name, 
-      medication.dosage, 
-      medication.frequency, 
-      medication.patientId, 
-      medication.createdAt, 
-      medication.taken, 
-      medication.lastTaken, 
-      medication.photoProof
-    );
-    return { id, ...medication };
+    const newMedication = { id, ...medication };
+    medications.push(newMedication);
+    this.saveMedications(medications);
+    return newMedication;
   }
 
   updateMedicationTaken(medicationId: string, taken: boolean, lastTaken?: string): void {
-    const stmt = this.db.prepare('UPDATE medications SET taken = ?, lastTaken = ? WHERE id = ?');
-    stmt.run(taken ? 1 : 0, lastTaken || null, medicationId);
-  }
-
-  close() {
-    this.db.close();
+    const medications = this.getMedications();
+    const medicationIndex = medications.findIndex(med => med.id === medicationId);
+    
+    if (medicationIndex !== -1) {
+      medications[medicationIndex].taken = taken ? 1 : 0;
+      medications[medicationIndex].lastTaken = lastTaken || undefined;
+      this.saveMedications(medications);
+    }
   }
 }
 
